@@ -1,0 +1,77 @@
+let person = function () {
+    this.age = 22
+    person.prototype.pAge = 33
+    person.prototype.showAge = () => {
+        return this.age
+    }
+    // 这种方式会影响到constructor
+    // person.prototype = {
+    //     age: 33
+    // }
+}
+let p = new person()
+/**
+ * 首先区分一下普通对象和函数对象的概念，凡是通过 new Function() 创建的对象都是函数对象
+ * 
+ * 受之前Java的惯性思维影响，通常认为对象和函数是两回事。但在js中，函数也是对象。也就是说，在js中可以将函数赋值给一个变量，也就是上面person的赋值过程。那这里的person，既是一个函数，也是一个对象。
+ * 那么这个变量被赋值了一个对象，这个对象是一个函数，那这个对象就是函数对象。
+ * 
+ * 到目前为止，产生了两个个东西
+ * 1.person：一个被赋值了函数的变量，也就是一个函数对象
+ * 2.person的值：是一个函数
+ */
+
+
+
+console.log(person.prototype);
+// person { age: 33, showAge: [Function] }
+console.log(p.prototype);
+// undefined
+
+/**
+ * 原型对象概念：
+ * 在js中，每当定义一个对象的时候，会自动生成一些预定义好的属性。当一个函数对象被定义出来的时候，就会有一个prototype属性。
+ * 这个属性会指向一个对象，而这个对象我们就称作是这个函数的原型对象。
+ * 根据上面的测试，这个原型对象是默认存在的一个空对象，如果给它添加属性，那后面也是可以看到相应的属性的。
+ * 
+ * 与此同时，作为普通对象的p，是没有prototype属性的
+ */
+
+console.log(person.prototype.constructor);
+// [Function: person]
+console.log(person.prototype.constructor == person);
+// true
+console.log(p.constructor);
+// [Function: person]
+console.log(person.prototype.constructor == p.constructor);
+// true
+/**
+ * 原型对象也会自动获得一个constructor属性，也就是构造函数。这个属性是一个指针，指向一开始的这个函数。
+ * 
+ * 接下来看这个p，因为p是从person上new出来的，也就是说p是person这个函数对象的一个实例。那p上也会自动有一个constructor属性，就指向了p的构造函数，也就是person。
+ * 
+ * 这个时候发现，虽然两个constructor并不是一回事，但打印出来的东西有点像啊,试一把就发现，两个都是person函数
+ * 一边是函数的原型对象，一边是函数的实例，这就可以得出一个结论：原型对象就是这个函数的一个实例。
+ * 
+ * 不过这个原型对象也是一个普通对象（不是函数对象，名词比较多不要搞混掉），所以它是没有prototype属性的
+ * 
+ */
+
+
+console.log(p.age, p.pAge)
+// 22 33
+console.log(p.showAge())
+// 22
+/**
+ * 这个原型对象有什么用呢，或者说为什么要创造这么一个东西呢
+ * 目前看来，对这个原型对象设置一些属性和方法，那么这个函数的实例就也会有这些属性和方法。
+ *
+ */
+
+
+ 
+// console.log(person.__proto__);
+// // [Function]
+// console.log(p.__proto__);
+// // person {}
+
