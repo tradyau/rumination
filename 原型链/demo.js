@@ -64,14 +64,66 @@ console.log(p.showAge())
 // 22
 /**
  * 这个原型对象有什么用呢，或者说为什么要创造这么一个东西呢
- * 目前看来，对这个原型对象设置一些属性和方法，那么这个函数的实例就也会有这些属性和方法。
+ * 目前看来，对这个原型对象设置一些属性和方法，那么这个函数的实例就也会有这些属性和方法。比如pAge和showAge()方法是写在prototype上，没有直接写在函数里，但是直接调用的时候也会有结果。
  *
  */
 
+console.log(person.__proto__);
+// [Function]
+console.log(p.__proto__);
+// person { pAge: 33, showAge: [Function] }
+console.log(p.__proto__ == person.prototype);
+//true
+/**
+ * JS在创建对象的时候，不论是普通对象还是函数对象，都会有一个__proto__属性，这个属性会指向创建它的构造函数的原型对象。
+ * 
+ * 需要注意的是，这个链接关系是存在于实例和和构造函数的原型对象之间，并不是实例和构造函数直接联系的。
+ *
+ */
 
- 
-// console.log(person.__proto__);
-// // [Function]
-// console.log(p.__proto__);
-// // person {}
+let obj1 = {}
+// 等价于
+let obj2 = new Object()
+console.log(obj1.__proto__);
+// {}
+/**
+ * 这么看来，obj是Object()的一个实例，那Object其实也是有原型对象（Object.prototype），所以普通对象的__proto__，其实就是指向了Object.prototype
+ * 同理，Array，Date，Function等也都有自己的原型对象.
+ * 
+ * 但Function.prototype有点特殊
+ */
 
+let mPerson = function () { }
+let mP = new mPerson()
+// 相当于
+let nPerson = new Function()
+let nP = new nPerson()
+/**
+ * 这里可以看出，nPerson是Function()的一个实例，可以等价于Function.prototype。于此同时，它也是一个函数对象，所以Function.prototype也是一个函数对象。
+ * 
+ */
+
+console.log(Function.prototype);
+// [Function]
+console.log(Object.__proto__);
+// [Function]
+console.log(Object.__proto__ == Array.__proto__)
+// true
+console.log(Object.__proto__ == Function.prototype)
+// true
+console.log(Function.__proto__ == Function.prototype)
+// true
+console.log(Function.prototype.__proto__);
+// {}
+console.log(Object.prototype.__proto__);
+// null 这个比较特殊，null是原型链的顶端
+
+/**
+ * 所有的构造器(Array,String...)都来自于Function.prototype，甚至包括根构造器Object及Function自身,所以Object.__proto__也就指向了Function.prototype
+ * 当然，自定义的构造器，其实也就是自定义的函数对象，__proto__也是指向Function.prototype
+ *
+ * 那Function.prototype虽然是个函数对象，但它也是一个对象，它的__proto__又指向谁呢?
+ * 尝试了之后发现，Function.prototype也只是一个普通对象，那普通对象的__proto__自然也就指向Object.prototype
+ *
+ * 最后，Object.prototype.__proto__又指向谁呢？结果是null，到头了
+ */
