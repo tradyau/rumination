@@ -127,3 +127,19 @@ console.log(Object.prototype.__proto__);
  *
  * 最后，Object.prototype.__proto__又指向谁呢？结果是null，到头了
  */
+
+/**
+ * 原型链能用来干嘛呢？最明显的就是实现继承，也就是函数继承。
+ * js中当调用一个对象a的属性时，会先看a本身有没有，没有的话就再往上，通过a.__proto__找到原型对象，看这个原型对象上有没有，没有的话就继续再往上，a.__proto__.__proto去找
+ * 实现函数继承有四种方法：
+ * 1、创建空函数作架桥函数，将其封装成inherits函数
+ * 2、利用create方法， child.prototype=Object.create(parents.prototype)
+ * 3、利用_proto_属性， child.prototype._proto_=parents.prototype
+ * 4、利用setPrototypeOf方法， child.prototype=Object.setPrototypeOf(parents.prototype)
+ */
+
+ /**
+  * 参考资料
+  * https://www.liaoxuefeng.com/wiki/1022910821149312/1023021997355072
+  * https://www.jianshu.com/p/dee9f8b14771
+  */
