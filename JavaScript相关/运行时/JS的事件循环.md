@@ -18,7 +18,7 @@
 ## 宏观任务和微观任务
 通常，JS的任务都是由我们发起的。由于Promise的引入，JS引擎也可以自己发起任务了。因此，由宿主发起的任务就叫做宏观任务，由JS自己发起的任务就叫做微观任务。
 
-联系上面的知识，我理解中，任务队列其实就是一个个的宏任务，但是由Promise发起的异步任务，也必须保证在同一个宏观任务中执行，因此每个宏观任务又会包含一个微观任务队列。
+联系上面的知识，我理解中，任务队列其实就是一个个的宏任务。也就是说，上面的任务队列的概念，可以对应到宏任务队列。
 
 宏任务包括有：setTimeOut、setInterval、setImmediate、I/O、用户交互操作，UI渲染
 
@@ -37,3 +37,34 @@
 来分析一波这段代码，首先主线程会执行到new Promise里，然后打印出a，然后到resolve()；但是由于这个是Promise里的异步回调，所以打印c的代码会被放到任务队列中，主线程继续往下，执行打印b。然后主线程的执行栈空掉了，就去任务队列找，发现有一个打印c的任务，也符合时间要求，就取出来到主线程执行了。
 
 再来看这段代码，当setTimeout和Promise混合在一起，也就是宏任务和微任务混合到一起的时候。
+``` js
+    var r = new Promise(function(resolve, reject){
+        console.log("a");
+        resolve()
+    });
+    setTimeout(()=>console.log("d"), 0)
+    r.then(() => console.log("c"));
+    console.log("b")
+    // a b c d
+```
+和上面一样，首先主线程会运行到new Promise里，打印出a；然后到resolve()，打印c被放进任务队列，然后发现setTimeout，会将打印d放进任务队列，之后执行打印b。执行栈结束后调用任务队列，打印剩下的c和d。
+但是这个地方发现，不论怎么调整c和d的位置，都不会影响先打印c后打印d；也就是说作为微任务的c会先于宏任务d执行
+
+```js
+    setTimeout(()=>console.log("d"), 0)
+    var r = new Promise(function(resolve, reject){
+        resolve()
+    });
+    r.then(() => { 
+        var begin = Date.now();
+        while(Date.now() - begin < 1000);
+        console.log("c1") 
+        new Promise(function(resolve, reject){
+            resolve()
+        }).then(() => console.log("c2"))
+    });
+    // c1 c2 d
+```
+这段代码中，在打印c1之前，强制阻塞了1s的时间，但d仍然是在c1和c2之后被打印。这也再度证明了微任务的执行优先级是要高于宏任务。
+
+最后简单得出一个结论：微任务队列优先于宏任务队列执行，微任务队列上创建的宏任务会被后添加到当前宏任务队列的尾端，微任务队列中创建的微任务会被添加到微任务队列的尾端。只要微任务队列中还有任务，宏任务队列就只会等待微任务队列执行完毕后再执行。
