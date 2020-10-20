@@ -19,3 +19,57 @@
 ## 虚拟 DOM 的优点
 
 为了避免频繁地直接操作 DOM，虚拟 DOM 应运而生。主要的思路可以理解为，用 JS 模拟出 DOM 树，将多次 DOM 操作用 JS 计算完毕，再一次性 attach 到 DOM 树上。在内存中操作 JS 效率肯定远高于浏览器重新渲染 DOM 树，所以性能提升也会相当明显。
+
+## 自己试试
+
+知道了虚拟 DOM 的原理，可以尝试一下看自己能不能简单用 Demo 展示这个思路。
+
+```html
+<div id="virtual-dom">
+  <p>Virtual DOM</p>
+  <ul id="list">
+    <li class="item">Item 1</li>
+    <li class="item">Item 2</li>
+    <li class="item">Item 3</li>
+  </ul>
+  <div>Hello World</div>
+</div>
+```
+
+这是一段包含了普通文本、列表、div 的 HTML。
+虚拟 DOM 的第一步是用 js 模拟出 DOM 树结构。DOM 节点一般有三个基本属性：元素名称，元素的属性，元素所包含的子元素。我们用一个函数对象来模拟一个 DOM 元素，然后再写一个函数，通过返回这个函数对象的实例，来代表创建了一个 DOM 节点。
+
+```js
+/**
+ * Element virdual-dom 对象定义
+ * @param {String} tagName - dom 元素名称
+ * @param {Object} props - dom 属性
+ * @param {Array<Element|String>} - 子节点
+ */
+function Element(tagName, props, children) {
+  this.tagName = tagName;
+  this.props = props;
+  this.children = children;
+  // dom 元素的 key 值，用作唯一标识符
+  if (props.key) {
+    this.key = props.key;
+  }
+  var count = 0;
+  children.forEach(function (child, i) {
+    if (child instanceof Element) {
+      count += child.count;
+    } else {
+      children[i] = "" + child;
+    }
+    count++;
+  });
+  // 子元素个数
+  this.count = count;
+}
+
+function createElement(tagName, props, children) {
+  return new Element(tagName, props, children);
+}
+
+module.exports = createElement;
+```
