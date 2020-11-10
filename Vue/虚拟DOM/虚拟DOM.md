@@ -1,7 +1,7 @@
 ## 真实 DOM
 
 先来看看真实的 DOM 流程是怎样的
-![DOM](https://zbd-image.oss-cn-hangzhou.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20201020162213.png)
+![DOM](https://zbd-image.oss-cn-hangzhou.aliyuncs.com/rumination/%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_20201020162213.png)
 
 1. 生成 DOM 树：用 HTML 分析器（HTML Parsee），分析 HTML 文档，生成一个 DOM 树（DOM Tree）
 2. 生成样式表：用 css 分析器，解析 css 文件和直接写在标签上的样式，生成页面的样式表。
