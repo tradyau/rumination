@@ -83,6 +83,7 @@ person.say.myCall(person2);
     let fn = Symbol();
     context[fn] = this;
     context[fn]();
+    delete context[fn];
   };
   ```
 - **除了 context，call 还需要绑定很多参数进去，作为调用时的参数**
@@ -95,6 +96,7 @@ person.say.myCall(person2);
     // 获取剩余参数
     let arg = [...arguments].slice(1);
     context[fn](...arg);
+    delete context[fn];
   };
   ```
 
@@ -126,8 +128,45 @@ Function.prototype.myCall = function (context) {
   context[fn] = this;
   let arg = [...arguments].slice(1);
   context[fn](...arg);
+  delete context[fn];
 };
 
 person.say.myCall(person2, 18);
+// bb 18
+```
+
+### 手写 apply
+
+call 已经实现了，apply 也没什么难度，只要把传参的方式改一下就好了,直接上代码
+
+```js
+let person = {
+  name: 'aa',
+  say(age) {
+    console.log(this.name, age);
+  },
+};
+let person2 = {
+  name: 'bb',
+};
+
+person.say(22);
+// aa 22
+
+person.say.apply(person2, [33]);
+// bb 33
+
+// person2.say();
+// // 报错
+
+Function.prototype.myApply = function (context, arr) {
+  context = context || window;
+  let fn = Symbol();
+  context[fn] = this;
+  context[fn](...arr);
+  delete context[fn];
+};
+
+person.say.myApply(person2, [18]);
 // bb 18
 ```
