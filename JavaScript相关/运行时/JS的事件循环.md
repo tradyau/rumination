@@ -29,15 +29,17 @@
 
 微任务包括有：Promise(重点)、process.nextTick(nodejs)、Object.observe(不推荐使用)
 
+![任务环](https://zbd-image.oss-cn-hangzhou.aliyuncs.com/rumination/1802415781_26802454139_v8.gif)
+
 ## Promise
 
 ```js
 var r = new Promise(function (resolve, reject) {
-  console.log("a");
+  console.log('a');
   resolve();
 });
-r.then(() => console.log("c"));
-console.log("b");
+r.then(() => console.log('c'));
+console.log('b');
 // a b c
 ```
 
@@ -47,12 +49,12 @@ console.log("b");
 
 ```js
 var r = new Promise(function (resolve, reject) {
-  console.log("a");
+  console.log('a');
   resolve();
 });
-setTimeout(() => console.log("d"), 0);
-r.then(() => console.log("c"));
-console.log("b");
+setTimeout(() => console.log('d'), 0);
+r.then(() => console.log('c'));
+console.log('b');
 // a b c d
 ```
 
@@ -60,17 +62,17 @@ console.log("b");
 但是这个地方发现，不论怎么调整 c 和 d 的位置，都不会影响先打印 c 后打印 d；也就是说作为微任务的 c 会先于宏任务 d 执行
 
 ```js
-setTimeout(() => console.log("d"), 0);
+setTimeout(() => console.log('d'), 0);
 var r = new Promise(function (resolve, reject) {
   resolve();
 });
 r.then(() => {
   var begin = Date.now();
   while (Date.now() - begin < 1000);
-  console.log("c1");
+  console.log('c1');
   new Promise(function (resolve, reject) {
     resolve();
-  }).then(() => console.log("c2"));
+  }).then(() => console.log('c2'));
 });
 // c1 c2 d
 ```
@@ -81,7 +83,7 @@ r.then(() => {
 
 ```js
 new Promise((resolve, reject) => {
-  console.log("promise1");
+  console.log('promise1');
   resolve();
 })
   .then(() => {
@@ -95,7 +97,7 @@ new Promise((resolve, reject) => {
   });
 
 new Promise((resolve, reject) => {
-  console.log("promise2");
+  console.log('promise2');
   resolve();
 })
   .then(() => {
@@ -129,4 +131,5 @@ test3();
 console.log(5);
 // 3 1 5 2 4
 ```
-async修饰的函数会固定返回一个promise，await之前的代码和await的函数会被同步执行，await之后的函数会被看做promise.then()中执行，也就是添加到微任务栈中
+
+async 修饰的函数会固定返回一个 promise，await 之前的代码和 await 的函数会被同步执行，await 之后的函数会被看做 promise.then()中执行，也就是添加到微任务栈中
