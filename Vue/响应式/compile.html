@@ -7,14 +7,17 @@
   </head>
   <body>
     <div id="app">
-      <p>{{person.name}}</p>
+      <p>{{person.name}}--{{person.fav}}</p>
       <p>{{msg}}</p>
       <div>
-          <div>{{msg}}</div>
+        <div>{{msg}}</div>
       </div>
       <div v-text="msg"></div>
+      <div v-text="person.fav"></div>
       <div v-html="htmlStr"></div>
       <input type="text" v-model="msg" />
+      <button v-on:click="clickItem">按钮1</button>
+      <button @click="clickItem">按钮2</button>
     </div>
   </body>
   <script src="./MVue.js"></script>
@@ -24,8 +27,15 @@
       data: {
         person: {
           name: 'test',
+          fav: 'running',
         },
         msg: 'myMsg',
+        htmlStr: '<p>p标签</p>',
+      },
+      methods: {
+        clickItem() {
+          console.log('click', this);
+        },
       },
     });
   </script>
