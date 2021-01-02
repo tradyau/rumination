@@ -3,7 +3,12 @@ const compileUtil = {
   getValue(expr, vm) {
     return expr.split('.').reduce((data, currentValue) => {
       return data[currentValue];
-    }, vm.$date);
+    }, vm.$data);
+  },
+  getContentVal(expr, vm) {
+    return expr.replace(/\{\{(.+?)\}\}/g, (...args) => {
+      return this.getValue(args[1], vm);
+    });
   },
   text(node, expr, vm) {
     let value;
@@ -11,6 +16,10 @@ const compileUtil = {
     if (expr.indexOf('{{') !== -1) {
       // 正则匹配，去掉大括号，取到真正的key，再去获取data中的实际值
       value = expr.replace(/\{\{(.+?)\}\}/g, (...args) => {
+        // 添加watcher
+        new Watcher(vm, arg[1], () => {
+          this.updater.textUpdater(node, this.getContentVal(expr, vm));
+        });
         return this.getValue(args[1], vm);
       });
     } else {
@@ -21,11 +30,23 @@ const compileUtil = {
     this.updater.textUpdater(node, value);
   },
   html(node, expr, vm) {
-    const value = this.getValue(expr, vm);
+    let value = this.getValue(expr, vm);
+    //  编译html的时候，创建一个watcher
+    new Watcher(vm, expr, (newVal) => {
+      // 用newVal渲染页面
+      this.updater.htmlUpdater(node, newVal);
+    });
+    // 初始化的时候渲染页面
     this.updater.htmlUpdater(node, value);
   },
   model(node, expr, vm) {
     const value = this.getValue(expr, vm);
+    //  编译model的时候，创建一个watcher
+    new Watcher(vm, expr, (newVal) => {
+      // 用newVal渲染页面
+      this.updater.modelUpdater(node, newVal);
+    });
+    // 初始化时渲染页面
     this.updater.modelUpdater(node, value);
   },
   // 事件
@@ -150,10 +171,11 @@ class Compile {
 class MVue {
   constructor(options) {
     this.$el = options.el;
-    this.$date = options.data;
+    this.$data = options.data;
     this.$options = options;
     if (this.$el) {
       // 实现一个数据观察者
+      new Observer(this.$data);
       // 实现一个指令解析器
       new Compile(this.$el, this);
     }
