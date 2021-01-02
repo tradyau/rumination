@@ -5,6 +5,11 @@ const compileUtil = {
       return data[currentValue];
     }, vm.$data);
   },
+  setValue(expr, vm, inputVal) {
+    return expr.split('.').reduce((data, currentValue) => {
+      data[currentValue] = inputVal;
+    }, vm.$data);
+  },
   getContentVal(expr, vm) {
     return expr.replace(/\{\{(.+?)\}\}/g, (...args) => {
       return this.getValue(args[1], vm);
@@ -42,9 +47,15 @@ const compileUtil = {
   model(node, expr, vm) {
     const value = this.getValue(expr, vm);
     //  编译model的时候，创建一个watcher
+    // 数据驱动视图
     new Watcher(vm, expr, (newVal) => {
       // 用newVal渲染页面
       this.updater.modelUpdater(node, newVal);
+    });
+
+    // 视图驱动数据
+    node.addEventListener('input', (e) => {
+      this.setValue(expr, vm, e.target.value);
     });
     // 初始化时渲染页面
     this.updater.modelUpdater(node, value);
@@ -178,6 +189,19 @@ class MVue {
       new Observer(this.$data);
       // 实现一个指令解析器
       new Compile(this.$el, this);
+      this.proxyData(this.$data);
+    }
+  }
+  proxyData(data) {
+    for (const key in object) {
+      Object.defineProperty(this, key, {
+        get() {
+          return data[key];
+        },
+        set(newVal) {
+          data[key] = newVal;
+        },
+      });
     }
   }
 }
