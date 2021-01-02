@@ -103,14 +103,14 @@ class Compile {
     // 获取元素节点上的属性
     const attributes = node.attributes;
     [...attributes].forEach((attr) => {
-      // 结构赋值，拿到属性的名称和属性值
+      // 解构赋值，拿到属性的名称和属性值
       const { name, value } = attr;
       // 判断属性是否是指令属性
       if (this.isDirectName(name)) {
         // 此时的name为：v-text v-html v-model v-on:click
-        // 结构赋值拿到“v-”后的指令内容,此时的directive为：text html model on:click
+        // 解构赋值拿到“v-”后的指令内容,此时的directive为：text html model on:click
         const [, directive] = name.split('-');
-        // on:click需要进一步处理，继续结构赋值
+        // on:click需要进一步处理，继续解构赋值
         // 此时，dirName为：text html model on eventName的值为：click
         const [dirName, eventName] = directive.split(':');
         // 策略模式，针对不同的属性，执行不同的操作，更新视图
