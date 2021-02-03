@@ -2,14 +2,82 @@
 
 尝试做一个单行的轮播，用 vue 的 transition-group 监听一个单元素数组，通过数组的变化来实现动画的轮播
 
-```html
-<div class="box" :style="`background-image: url(${bgImg})`">
-  <transition-group name="text">
-    <div v-for="item in currentText" :key="item" class="currentText">
-      {{ item }}
+```vue
+<template>
+  <div class="home">
+    <!-- <button @click="handleClick">click</button> -->
+    <div class="box" :style="`background-image: url(${bgImg})`">
+      <transition-group name="text">
+        <div v-for="item in currentText" :key="item" class="currentText">
+          {{ item }}
+        </div>
+      </transition-group>
     </div>
-  </transition-group>
-</div>
+  </div>
+</template>
+<script>
+export default {
+  name: 'Home',
+  components: {},
+  data() {
+    return {
+      currentText: [],
+      currentIndex: 0,
+      bgImg:
+        'http://yun.tuisnake.com/turnCircle_red/da7011e7-0f67-46b7-b206-6baeae37e4c0.png?x-oss-process=image/format,webp',
+      msgList: [
+        '用户李**1分钟前抽中iPhone12',
+        '用户元**1分钟前抽中1.8元红包',
+        '用户王**1分钟前抽中1.8元红包',
+        '用户赵**1分钟前抽中1000金币',
+        '用户蒋**刚刚抽中iPhone12',
+        '用户郑**刚刚抽中18元红包',
+        '用户孔**刚刚抽中1000金币',
+        '用户曹**刚刚抽中18元红包',
+        '用户钱**刚刚集齐100元成功提现',
+        '用户周**刚刚抽中百万交通意外险',
+        '用户何**刚刚抽中iPhone12',
+        '用户吕**刚刚抽中1000金币',
+        '用户黄**刚刚集齐100元成功提现',
+        '用户施**刚刚抽中免费白酒一箱',
+        '用户张**刚刚抽中18元红包',
+      ],
+    };
+  },
+  mounted() {
+    setInterval(() => {
+      if (this.currentIndex < this.msgList.length) {
+        this.currentText = [];
+        this.currentText.push(this.msgList[this.currentIndex]);
+        this.currentIndex++;
+      } else {
+        this.currentIndex = 0;
+        this.currentText = [];
+        this.currentText.push(this.msgList[this.currentIndex]);
+        this.currentIndex++;
+      }
+    }, 2000);
+  },
+  methods: {
+    // handleClick() {
+    //   if (this.currentIndex < this.msgList.length) {
+    //     this.currentText = [];
+    //     this.currentText.push(this.msgList[this.currentIndex]);
+    //     this.currentIndex++;
+    //   } else {
+    //     this.currentIndex = 0;
+    //     this.currentText = [];
+    //     this.currentText.push(this.msgList[this.currentIndex]);
+    //     this.currentIndex++;
+    //   }
+    //   console.log(this.currentText);
+    // },
+  },
+};
+</script>
+<style lang="less" scoped>
+@import './Home';
+</style>
 ```
 
 ```css
