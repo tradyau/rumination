@@ -1,0 +1,22 @@
+{
+  "name": "rumination",
+  "version": "1.0.0",
+  "description": "之前觉得，自己的前端技术之路，有点像平地起高楼。做了两三年，楼是起来了，能住人了，高处的风景看着似乎也不错，飘飘然就觉得自己也有实力了。",
+  "main": "github.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amarok1217/rumination.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Amarok1217/rumination/issues"
+  },
+  "homepage": "https://github.com/Amarok1217/rumination#readme",
+  "dependencies": {
+    "typescript": "^4.2.4"
+  }
+}
