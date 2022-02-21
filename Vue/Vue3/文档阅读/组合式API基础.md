@@ -1,0 +1,282 @@
+# vue3 文档阅读笔记
+
+## 写在前面
+
+vue3 也看了不少资料，但是其实有很多东西都是“二手”的，真正需要反复回顾的还得是官方的文档。这次再读准备读得更精细一点，顺便记录下自己阅读时的想法和收货。日后再看起来，不论是技术还是经历角度，应该都挺有意思的。
+
+注：组合式 API 下面会用 vue3 来描述，选项式 API 会用 vue2 来描述，纯粹为了方便。
+
+## Composition API (组合式 API)
+
+> 使用 (data、computed、methods、watch) 组件选项来组织逻辑通常都很有效。然而，当我们的组件开始变得更大时，逻辑关注点的列表也会增长。尤其对于那些一开始没有编写这些组件的人来说，这会导致组件难以阅读和理解。
+
+实际工作中的确会遇到这样的问题，接手旧项目时可读性很差。或者说经常遇到组件化不够彻底，加上 data 和 methods 是分开写的，经常需要来回跳着看。显然组合式 API 就是为了解决这个问题。
+
+### 响应式基础
+
+> 既然我们知道了为什么，我们就可以知道怎么做。为了开始使用组合式 API，我们首先需要一个可以实际使用它的地方。在 Vue 组件中，我们将此位置称为 setup。
+
+> 新的 setup 选项在组件创建之前执行，一旦 props 被解析，就将作为组合式 API 的入口。
+
+> 在 setup 中你应该避免使用 this，因为它不会找到组件实例。setup 的调用发生在 data property、computed property 或 methods 被解析之前，所以它们无法在 setup 中被获取。
+
+这个地方讲到了引入 setup
+
+```js
+setup(props){
+    // props 的内容其实就是vue2组件Props项中的内容
+}
+```
+
+```js
+// src/components/UserRepositories.vue `setup` function
+import { fetchUserRepositories } from '@/api/repositories'
+
+// 在我们的组件内
+setup (props) {
+  let repositories = []
+  const getUserRepositories = async () => {
+    repositories = await fetchUserRepositories(props.user)
+  }
+
+  return {
+    repositories,
+    getUserRepositories // 返回的函数与方法的行为相同
+  }
+}
+```
+
+文档这里简单用 setup 写了个例子，大意是通过请求获取数据，渲染页面。但显然，目前的代码是没有响应式的。
+
+于是便引入了`ref`
+
+```js
+import { ref } from 'vue';
+
+const counter = ref(0);
+
+console.log(counter); // { value: 0 }
+console.log(counter.value); // 0
+
+counter.value++;
+console.log(counter.value); // 1
+```
+
+> 换句话说，ref 为我们的值创建了一个响应式引用。在整个组合式 API 中会经常使用引用的概念。
+
+vue3 的思路是为了所有的响应式值外面都包了一层。string 和 number 等基础变量在传递时，传递的其实都是值，所以在外面包了一层之后，所有的响应式变量传递的时候只需要统一处理就可以了。
+
+```js
+// src/components/UserRepositories.vue `setup` function
+import { fetchUserRepositories } from '@/api/repositories'
+import { ref } from 'vue'
+
+// 在我们的组件中
+setup (props) {
+  const repositories = ref([])
+  const getUserRepositories = async () => {
+    repositories.value = await fetchUserRepositories(props.user)
+  }
+
+  return {
+    repositories,
+    getUserRepositories
+  }
+}
+```
+
+demo 中正式引入了 ref，现在是响应式了。
+
+### setup 中的生命周期
+
+在 vue2 时期，也确实有很多东西会塞在`mounted()`里，这么看来，如果使用 setup 组装的话，显然 setup 中也需要有生命周期。
+
+> 为了使组合式 API 的功能和选项式 API 一样完整，我们还需要一种在 setup 中注册生命周期钩子的方法。这要归功于 Vue 导出的几个新函数。组合式 API 上的生命周期钩子与选项式 API 的名称相同，但前缀为 on：即 mounted 看起来会像 onMounted。
+
+> **这些函数接受一个回调，当钩子被组件调用时，该回调将被执行。**
+
+这里稍微注意一下，setup 内的生命周期接收的是一个回调函数，而不是和 vue2 的生命周期函数一样，直接调用函数内容。
+
+```js
+// src/components/UserRepositories.vue `setup` function
+import { fetchUserRepositories } from '@/api/repositories'
+import { ref, onMounted } from 'vue'
+
+// 在我们的组件中
+setup (props) {
+  const repositories = ref([])
+  const getUserRepositories = async () => {
+    repositories.value = await fetchUserRepositories(props.user)
+  }
+
+  onMounted(getUserRepositories) // 在 `mounted` 时调用 `getUserRepositories`
+
+  return {
+    repositories,
+    getUserRepositories
+  }
+}
+```
+
+目前的 demo 已经可以在页面加载的时候去请求接口，刷新数据。但是当请求的参数`props.user`有变动的时候，并不会再次自动刷新。那接下来自然就是介绍`watch`了。
+
+### watch 响应式更改
+
+```js
+import { ref, watch } from 'vue';
+
+const counter = ref(0);
+watch(counter, (newValue, oldValue) => {
+  console.log('The new counter value is: ' + counter.value);
+});
+```
+
+用法很简单，传入一个监听对象和回调函数，函数的入参包含新值和旧值。
+
+demo 接入
+
+```js
+// src/components/UserRepositories.vue `setup` function
+import { fetchUserRepositories } from '@/api/repositories'
+import { ref, onMounted, watch, toRefs } from 'vue'
+
+// 在我们组件中
+setup (props) {
+  // 使用 `toRefs` 创建对 `props` 中的 `user` property 的响应式引用
+  const { user } = toRefs(props)
+
+  const repositories = ref([])
+  const getUserRepositories = async () => {
+    // 更新 `prop.user` 到 `user.value` 访问引用值
+    repositories.value = await fetchUserRepositories(user.value)
+  }
+
+  onMounted(getUserRepositories)
+
+  // 在 user prop 的响应式引用上设置一个侦听器
+  watch(user, getUserRepositories)
+
+  return {
+    repositories,
+    getUserRepositories
+  }
+}
+```
+
+这里使用了 toRefs，也就是说对`props`的`user`，显然不能直接`=ref()`再进行赋值，然后生成新的响应式对象。所以用了`toRefs()`，将其转成一个响应式对象。
+
+> 这里有一点个人的疑问 （已部分解决）
+>
+> 1.  如果 props 内传进来的东西需要转成响应式对象，那说明它原本并不是响应式的？那和 vue2 的 props 就不一样了，vue2 的 props 是可以直接 this 去用的，而且也是响应式。
+> 2.  又或者父组件的 user 更新时，也会更新 setup 的 props，只是 props 在子组件的 setup 内并不是响应式的。
+> 3.  如果`2`成立的话，为什么 vue 在 setup 的时候不直接将 props 的东西全部转成响应式的？
+
+### computed
+
+watch 完了之后肯定就是 computed 了
+
+```js
+import { ref, computed } from 'vue';
+
+const counter = ref(0);
+const twiceTheCounter = computed(() => counter.value * 2);
+
+counter.value++;
+console.log(counter.value); // 1
+console.log(twiceTheCounter.value); // 2
+```
+
+用法也很简单
+
+文档的作者也猜到了读者读到这里的疑惑：
+
+> 对于其他的逻辑关注点我们也可以这样做，但是你可能已经在问这个问题了——这不就是把代码移到 setup 选项并使它变得非常大吗？嗯，确实是这样的。这就是为什么我们要在继续其他任务之前，我们首先要将上述代码提取到一个独立的组合式函数中。让我们从创建 useUserRepositories 函数开始：
+
+这个`useXxx`一出来，我就想到了当年被`react hooks`支配的时光，来看看 vue 这边的活儿整的怎么样。
+
+```js
+// src/composables/useUserRepositories.js
+
+import { fetchUserRepositories } from '@/api/repositories';
+import { ref, onMounted, watch } from 'vue';
+
+export default function useUserRepositories(user) {
+  const repositories = ref([]);
+  const getUserRepositories = async () => {
+    repositories.value = await fetchUserRepositories(user.value);
+  };
+
+  onMounted(getUserRepositories);
+  watch(user, getUserRepositories);
+
+  return {
+    repositories,
+    getUserRepositories,
+  };
+}
+```
+
+```js
+// src/composables/useRepositoryNameSearch.js
+
+import { ref, computed } from 'vue';
+
+export default function useRepositoryNameSearch(repositories) {
+  const searchQuery = ref('');
+  const repositoriesMatchingSearchQuery = computed(() => {
+    return repositories.value.filter((repository) => {
+      return repository.name.includes(searchQuery.value);
+    });
+  });
+
+  return {
+    searchQuery,
+    repositoriesMatchingSearchQuery,
+  };
+}
+```
+
+demo 的意思很简单，把逻辑相关的东西抽离成单独的 js 来维护。但最精髓的是，返回的是`ref`包装过的响应式对象。这也就意味着外部调用的时候，可以直接使用到返回的响应式对象。而且这个响应式对象是在自己维护更新的。
+
+最终使用：
+
+```js
+// src/components/UserRepositories.vue
+import { toRefs } from 'vue';
+import useUserRepositories from '@/composables/useUserRepositories';
+import useRepositoryNameSearch from '@/composables/useRepositoryNameSearch';
+import useRepositoryFilters from '@/composables/useRepositoryFilters';
+
+export default {
+  components: { RepositoriesFilters, RepositoriesSortBy, RepositoriesList },
+  props: {
+    user: {
+      type: String,
+      required: true,
+    },
+  },
+  setup(props) {
+    const { user } = toRefs(props);
+
+    const { repositories, getUserRepositories } = useUserRepositories(user);
+
+    const { searchQuery, repositoriesMatchingSearchQuery } = useRepositoryNameSearch(repositories);
+
+    const { filters, updateFilters, filteredRepositories } = useRepositoryFilters(
+      repositoriesMatchingSearchQuery
+    );
+
+    return {
+      // 因为我们并不关心未经过滤的仓库
+      // 我们可以在 `repositories` 名称下暴露过滤后的结果
+      repositories: filteredRepositories,
+      getUserRepositories,
+      searchQuery,
+      filters,
+      updateFilters,
+    };
+  },
+};
+```
+
+到最后一步，终于可以看出组合式API优秀的地方了。各个部分的逻辑确实被完全拆开，然后以极低的成本引入；且互相之间传递的也是响应式的数据。也确实非常漂亮地解决了一开始，选项式API的种种问题。
