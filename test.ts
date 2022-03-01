@@ -1,33 +1,57 @@
-function removeKdigits(num: string, k: number): string {
-  let stackArr = [];
-  num.split('').forEach((item, index) => {
-    let itemNum = parseInt(item);
-    if (index === 0) {
-      stackArr.push(itemNum);
-      return;
-    }
-    if (k === 0) {
-      stackArr.push(itemNum);
-      return;
-    }
-    while (stackArr[stackArr.length - 1] > itemNum && k !== 0) {
-      stackArr.pop();
-      k--;
-    }
-    stackArr.push(itemNum);
-  });
-  if (k > 0) {
-    while (k !== 0) {
-      stackArr.pop();
-      k--;
+// class MinStack {
+//   arr = [];
+//   constructor() {
+//     this.arr = [];
+//   }
+
+//   push(val: number): void {
+//     this.arr.push(val);
+//   }
+
+//   pop(): void {
+//     this.arr.pop();
+//   }
+
+//   top(): number {
+//     return this.arr[this.arr.length - 1];
+//   }
+
+//   getMin(): number {
+//     let res = this.arr[0];
+//     this.arr.forEach((item) => {
+//       res = Math.min(res, item);
+//     });
+//     return res
+//   }
+// }
+
+class MinStack {
+  arr = [];
+  minArr = [];
+  constructor() {
+    this.arr = [];
+    this.minArr = [];
+  }
+
+  push(val: number): void {
+    this.arr.push(val);
+    if (this.arr.length === 1) {
+      this.minArr.push(val);
+    } else {
+      this.minArr.push(Math.min(val, this.minArr[this.minArr.length - 1]));
     }
   }
-  while (stackArr[0] === 0 && stackArr.length > 0) {
-    stackArr.shift();
+
+  pop(): void {
+    this.arr.pop();
+    this.minArr.pop();
   }
-  if (stackArr.length === 0) {
-    return '0';
+
+  top(): number {
+    return this.arr[this.arr.length - 1];
   }
-  return stackArr.join('');
+
+  getMin(): number {
+    return this.minArr[this.minArr.length - 1];
+  }
 }
-removeKdigits('1432219', 3);
