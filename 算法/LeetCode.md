@@ -1,0 +1,111 @@
+# 栈
+
+通常遇到前后两个元素发生对比关系，或对应关系时，可以考虑使用栈的后进先出的特性
+
+## 括号匹配问题
+
+可以利用栈的后进先出进行匹配，后进的元素和栈内末尾进行比较，匹配到就可以出栈
+
+[20.有效的括号](https://leetcode-cn.com/problems/valid-parentheses/)
+
+```js
+var isValid = function (s) {
+  class stack {
+    constructor() {
+      this.arr = [];
+    }
+    push = (item) => {
+      return this.arr.push(item);
+    };
+    pop = () => {
+      return this.arr.pop();
+    };
+    showLength = () => {
+      return this.arr.length;
+    };
+    showLast = () => {
+      return this.arr[this.arr.length - 1];
+    };
+  }
+
+  let mStack = new stack();
+  s.split('').forEach((item, index) => {
+    if (mStack.showLength() === 0) {
+      mStack.push(item);
+      return;
+    }
+    switch (mStack.showLast()) {
+      case '(':
+        if (item === ')') {
+          mStack.pop();
+        } else {
+          mStack.push(item);
+        }
+        break;
+      case '[':
+        if (item === ']') {
+          mStack.pop();
+        } else {
+          mStack.push(item);
+        }
+        break;
+      case '{':
+        if (item === '}') {
+          mStack.pop();
+        } else {
+          mStack.push(item);
+        }
+        break;
+      default:
+        mStack.push(item);
+        break;
+    }
+  });
+  if (mStack.showLength() === 0) {
+    return true;
+  } else {
+    return false;
+  }
+};
+```
+
+## 通过对比移除数字类
+
+利用栈后进先出的特性，后进的元素和栈内末尾进行计算比较，符合要求就出栈
+
+[402.移掉 K 位数字](https://leetcode-cn.com/problems/remove-k-digits/)
+
+```ts
+function removeKdigits(num: string, k: number): string {
+  let stackArr = [];
+  num.split('').forEach((item, index) => {
+    let itemNum = parseInt(item);
+    if (index === 0) {
+      stackArr.push(itemNum);
+      return;
+    }
+    if (k === 0) {
+      stackArr.push(itemNum);
+      return;
+    }
+    while (stackArr[stackArr.length - 1] > itemNum && k !== 0) {
+      stackArr.pop();
+      k--;
+    }
+    stackArr.push(itemNum);
+  });
+  if (k > 0) {
+    while (k !== 0) {
+      stackArr.pop();
+      k--;
+    }
+  }
+  while (stackArr[0] === 0 && stackArr.length > 0) {
+    stackArr.shift();
+  }
+  if (stackArr.length === 0) {
+    return '0';
+  }
+  return stackArr.join('');
+}
+```
