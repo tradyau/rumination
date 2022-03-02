@@ -1,57 +1,44 @@
-// class MinStack {
-//   arr = [];
-//   constructor() {
-//     this.arr = [];
-//   }
+function removeDuplicateLetters(s: string): string {
+  let baseArr = s.split('');
+  let leftArr = s.split('');
+  let stack = [];
 
-//   push(val: number): void {
-//     this.arr.push(val);
-//   }
-
-//   pop(): void {
-//     this.arr.pop();
-//   }
-
-//   top(): number {
-//     return this.arr[this.arr.length - 1];
-//   }
-
-//   getMin(): number {
-//     let res = this.arr[0];
-//     this.arr.forEach((item) => {
-//       res = Math.min(res, item);
-//     });
-//     return res
-//   }
-// }
-
-class MinStack {
-  arr = [];
-  minArr = [];
-  constructor() {
-    this.arr = [];
-    this.minArr = [];
-  }
-
-  push(val: number): void {
-    this.arr.push(val);
-    if (this.arr.length === 1) {
-      this.minArr.push(val);
-    } else {
-      this.minArr.push(Math.min(val, this.minArr[this.minArr.length - 1]));
+  let popStack = (stack, item, leftArr) => {
+    if (stack.length === 0) {
+      stack.push(item);
+      return;
     }
-  }
+    if (stack.includes(item)) {
+      return;
+    }
+    if (item < stack[stack.length - 1]) {
+      if (leftArr.includes(stack[stack.length - 1])) {
+        stack.pop();
+      } else {
+        stack.push(item);
+        return;
+      }
+      popStack(stack, item, leftArr);
+    }
+    if (item === stack[stack.length - 1]) {
+      stack.pop();
+      popStack(stack, item, leftArr);
+    }
+    if (item > stack[stack.length - 1]) {
+      stack.push(item);
+      return;
+    }
+  };
 
-  pop(): void {
-    this.arr.pop();
-    this.minArr.pop();
-  }
-
-  top(): number {
-    return this.arr[this.arr.length - 1];
-  }
-
-  getMin(): number {
-    return this.minArr[this.minArr.length - 1];
-  }
+  baseArr.forEach((item, index) => {
+    leftArr.shift();
+    if (stack.length === 0) {
+      stack.push(item);
+      return;
+    }
+    popStack(stack, item, leftArr);
+  });
+  return stack.join('');
 }
+
+removeDuplicateLetters('abacb');
